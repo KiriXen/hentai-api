@@ -26,11 +26,12 @@ All endpoints are prefixed with `/hentai`.
 
 ### Search Manga
 
-- **URL:** `/search?query={query_here}`
+- **URL:** `/search?query={query_here}&page={page}`
 - **Method:** GET
 - **Description:** Allows you to search for manga by title, or keyword.
 - **Parameters:**
   - `query` (str): A search string to find manga. It could be the title of the manga, a keyword, or part of the title. The API will return results matching the search query.
+  - `page` (str, default="1"): Page number.
 - **Response:**
   - **200 OK**: Returns a list of manga that match the search query. Each manga will have details such as title.
   - **404 Not Found**: If no manga is found that matches the query.

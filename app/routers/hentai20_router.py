@@ -56,14 +56,23 @@ async def filter_mangas(
     return response.successful_response({ "data": data })
 
 @router.get("/search")
-async def search(query: str) -> JSONResponse:
-    """Search manga by title. This route must come before the manga_id route."""
-    data: Union[Dict[str, Any], int] = await search_manga(query)
+async def search(query: str, page: str = "1") -> JSONResponse:
+    params = {
+        "page": page,
+        "s": query,
+    }
+
+    data: Union[Dict[str, Any], int] = await search_manga(query, params=params)
 
     if data == CRASH or type(data) is int:
         return response.bad_request_response()
 
-    return response.successful_response({"data": data })
+    if "message" in data:
+        return response.successful_response({"data": data, "message": data["message"]})
+
+    return response.successful_response({"data": data})
+
+
 
 @router.get("/{manga_id}")
 async def manga(manga_id: str) -> JSONResponse:

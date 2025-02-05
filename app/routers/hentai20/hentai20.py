@@ -97,10 +97,16 @@ async def get_manga(manga_id) -> Union[Dict[str, Any], int]:
         }
     }
 
+async def search_manga(
+    query: str,
+    params: Dict[str, str], **kwargs
+) -> Union[Dict[str, Any], int]:
+    page = params.get("page", "1")
+    params["s"] = query
 
-async def search_manga(query: str) -> Union[Dict[str, Any], int]:
-    params = {"s": query}
-    response: Any = await api.get(endpoint="/", params=params, html=True)
+    endpoint = f"/page/{page}/"
+
+    response: Any = await api.get(**kwargs, endpoint=endpoint, params=params, html=True)
 
     if type(response) is int:
         return CRASH
@@ -108,11 +114,17 @@ async def search_manga(query: str) -> Union[Dict[str, Any], int]:
     soup: BeautifulSoup = get_soup(response)
     mangas: List[Dict[str, Any]] = []
 
+    if "Home" in soup.title or soup.select_one(".listupd") is None:
+        return {"mangas": [], "message": "Manga page not found"}
+
     search_container = soup.select_one(".listupd")
     if not search_container:
-        return {"mangas": []}
+        return {"mangas": [], "message": "Manga page not found"}
 
     manga_items = search_container.select(".bs .bsx")
+
+    if not manga_items:
+        return {"mangas": [], "message": "Manga page not found"}
 
     for manga_item in manga_items:
         try:
@@ -146,9 +158,20 @@ async def search_manga(query: str) -> Union[Dict[str, Any], int]:
             print(f"Error parsing manga item: {str(e)}")
             continue
 
+    pagination_info = soup.select_one(".pagination")
+    total_pages = 1
+
+    if pagination_info:
+        total_pages = len(pagination_info.find_all("a"))
+
     return {
-        "mangas": mangas
+        "mangas": mangas,
+        "pagination": {
+            "page": int(page),
+            "total_pages": total_pages
+        },
     }
+
 
 async def get_filter_mangas(
     params: Dict[str, str], **kwargs
@@ -172,7 +195,6 @@ async def get_filter_mangas(
         colored_ele = manga.select(".colored")
         colored = True if colored_ele else False
         latest_chapter = manga.select(".epxs")[0].text
-        score = manga.select(".numscore")[0].text
 
         mangas.append(
             {
@@ -181,7 +203,6 @@ async def get_filter_mangas(
                 "colored": colored,
                 "slug": slug,
                 "latest_chapter": latest_chapter,
-                "score": score,
             }
         )
 
