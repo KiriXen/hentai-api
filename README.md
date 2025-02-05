@@ -4,7 +4,7 @@
 This is the edited and working version of the [original hentai20 API](https://github.com/thullyDev/hentai20.api), a scraper API for hentai manga content.
 
 ## Getting Started
-1. `git clone https://github.com/kirixenyt/hentai20.api.git`
+1. `git clone https://github.com/KiriXen/hentai-api.git`
 2. `pip install -r requirements.txt`
 3. `uvicorn app.main:app`
 
